@@ -1,7 +1,5 @@
 Sub Worksheet_Change(ByVal Target As Excel.Range)
-'use this to automatically update cells and move rows when values in the sheet are changed
-'
-'Uses worksheet change events in particular cells to update other cells and move items
+'use this to automatically update cells and move rows when values in teh sheet are changed
 
 Dim ws0 As Worksheet
 Dim ws1 As Worksheet
@@ -54,7 +52,7 @@ Set Erik = ws0.Range("EriksTeam")
                     ws1.Cells(Thisrow, 1).Resize(1, 52).Copy
                     
                     'find the last row on teh destination sheet
-                    moverow = Lastrow(ws2) + 1
+                    moverow = Lastrow(ws2)
                     ws2.Cells(moverow, 1).PasteSpecial xlPasteAll
                     
                     'Remove source row
@@ -72,7 +70,7 @@ Set Erik = ws0.Range("EriksTeam")
                     ws1.Cells(Thisrow, 1).Resize(1, 52).Copy
                     
                     'find the last row on teh destination sheet
-                    moverow = Lastrow(ws3) + 1
+                    moverow = Lastrow(ws3)
                     ws3.Cells(moverow, 1).PasteSpecial xlPasteAll
                     
                     'Delete Row from Pipeline
@@ -90,7 +88,7 @@ Set Erik = ws0.Range("EriksTeam")
                     ws1.Cells(Thisrow, 1).Resize(1, 52).Copy
                     
                     'find the last row on teh destination sheet
-                    moverow = Lastrow(ws4) + 1
+                    moverow = Lastrow(ws4)
                     ws4.Cells(moverow, 1).PasteSpecial xlPasteAll
                     
                     'Delete Row from Pipeline
