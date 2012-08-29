@@ -165,7 +165,8 @@ Select Case UpdatedCell
 				ActiveSheet.Cells(ThisRow, 1).EntireRow.Delete
 				End If
         End Select
-    Case 35
+    'Worksheet Change Events for PM Status changes
+	Case 35
 		If ActiveSheet.Cells(ThisRow, 35).Value = "Complete - Presales Only" Or _
             ActiveSheet.Cells(ThisRow, 35).Value = "Complete - Handled out of Practice" Or _
             ActiveSheet.Cells(ThisRow, 35).Value = "Complete - DCV work finished" Then
