@@ -9,6 +9,7 @@
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 Sub OPRMRejectionReply()
 
+On Error GoTo ErrHandler
     
     Dim objItem As Object
     Dim Name As Variant
@@ -31,9 +32,33 @@ Sub OPRMRejectionReply()
         
         If StaffingOwner = "" Then
             FollowUp = ""
+            Set objFWD = Nothing
         Else
             FollowUp = "<p>We believe that person is: " & StaffingOwner & "</p>"
             name2 = Split(StaffingOwner)
+            'If Staffing Owner is identified:
+                'Create forward email
+                Set objFWD = objItem.Forward
+                'Forward to:
+                objFWD.To = StaffingOwner
+                'CC addresses
+                objFWD.CC = objItem.SenderName & "; as-dcn-pmo-request@cisco.com"
+                'Reply Subject
+                'objFWD.subject = "DCV Resource Request Rejection: " & subject & ", Need to use OPRM"
+                'Reply Importance
+                objFWD.Importance = olImportanceHigh
+                
+                objFWD.HTMLBody = "<p>Hi " & name2(0) & "," & "<br></p>" & _
+                "<p>We've received the staffing request below from " & Name(0) & " " & Name(1) & ", however; as you " & _
+                "know AS is now using OPRM for project resourcing, so we take no further action until a staffing requirement from OPRM reaches us.</p>" & _
+                "<p>Please use the information below as needed for completing the request in the system." & _
+                "<p>Thank you,</p>" & _
+                "<p>CHRIS TWELLMAN <br>" & _
+                "PROJECT SPECIALIST DCV ENGAGEMENT DESK <br>" & _
+                ".:|:.:|:.  Cisco | Data Center & Virtualization Practice | Solutions Delivery Management Team <br>" & _
+                "ctwellma@cisco.com | +1 919 392 6154" & "<br>" & _
+                "<p>-----Original Message-----" & _
+                objItem.HTMLBody & "</p>"
         End If
                
         ' create the reply, add the address and display
@@ -65,31 +90,6 @@ Sub OPRMRejectionReply()
         "ctwellma@cisco.com | +1 919 392 6154" & "<br>" & _
         "<p>-----Original Message-----" & _
         objItem.HTMLBody & "</p>"
-
-
-        
-        'Create forwarded email
-        Set objFWD = objItem.Forward
-        'Forward to:
-        objFWD.To = StaffingOwner
-        'CC addresses
-        objFWD.CC = objItem.SenderName & "; as-dcn-pmo-request@cisco.com"
-        'Reply Subject
-        'objFWD.subject = "DCV Resource Request Rejection: " & subject & ", Need to use OPRM"
-        'Reply Importance
-        objFWD.Importance = olImportanceHigh
-        
-        objFWD.HTMLBody = "<p>Hi " & name2(0) & "," & "<br></p>" & _
-        "<p>We've received the staffing request below from " & Name(0) & " " & Name(1) & ", however; as you " & _
-        "know AS is now using OPRM for project resourcing, so we take no further action until a staffing requirement from OPRM reaches us.</p>" & _
-        "<p>Please use the information below as needed for completing the request in the system." & _
-        "<p>Thank you,</p>" & _
-        "<p>CHRIS TWELLMAN <br>" & _
-        "PROJECT SPECIALIST DCV ENGAGEMENT DESK <br>" & _
-        ".:|:.:|:.  Cisco | Data Center & Virtualization Practice | Solutions Delivery Management Team <br>" & _
-        "ctwellma@cisco.com | +1 919 392 6154" & "<br>" & _
-        "<p>-----Original Message-----" & _
-        objItem.HTMLBody & "</p>"
         
         With objReply
             
@@ -114,6 +114,11 @@ Sub OPRMRejectionReply()
     Set objReply = Nothing
     Set objFWD = Nothing
     Set objItem = Nothing
+    
+    
+ErrHandler:     If Err.Number = 91 Then
+                    MsgBox ("A staffing owner name was not provided, so no forward email will be automatically generated")
+                End If
 End Sub
 
 Function GetCurrentItem() As Object
