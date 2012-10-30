@@ -1,20 +1,23 @@
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 ' This macro creates a reply to an email to specific parties with   '
 ' specific attachments, and asks for the staffing owner information '
+' It will then create another message to teh staffing owner with    '
+' the original request information so that they can submit the      '
+' requst                                                            '
 '                                                                   '
-'!! IMPORTANT: This relies on the GetCurrentItem() Function !!      '
+'        !!!Relies on the GetCurrentItem() Function!!!              '
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 Sub OPRMRejectionReply()
-    '!Relies on the GetCurrentItem() Function
+
     
     Dim objItem As Object
-    Dim replyEmail As MailItem
     Dim Name As Variant
     Dim MailAttach As MailItem
     Dim StaffingOwner As String
-    
-    
     Dim objReply As MailItem
+    Dim objFWD As MailItem
+    Dim name2 As Variant
+    
         
     Set objItem = GetCurrentItem()
     If objItem.Class = olMail Then
@@ -25,10 +28,12 @@ Sub OPRMRejectionReply()
         
         'Define Staffing Owner
         StaffingOwner = InputBox(Prompt:="Who should be the staffing owner for PID: " & ParseTextLinePair(objItem.Body, "PID:"), Title:="Staffing Owner?")
+        
         If StaffingOwner = "" Then
             FollowUp = ""
         Else
-            FollowUp = "<p>We belive that person is: " & StaffingOwner & "</p>"
+            FollowUp = "<p>We believe that person is: " & StaffingOwner & "</p>"
+            name2 = Split(StaffingOwner)
         End If
                
         ' create the reply, add the address and display
@@ -36,7 +41,7 @@ Sub OPRMRejectionReply()
         'Reply to:
         objReply.To = objItem.SenderName
         'CC addresses
-        objReply.CC = objItem.To & "; pegore@cisco.com;" & StaffingOwner
+        objReply.CC = objItem.To & "; pegore@cisco.com;"
         'Reply Subject
         objReply.subject = "DCV Resource Request Rejection: " & subject & ", Need to use OPRM"
         'Reply Importance
@@ -47,7 +52,7 @@ Sub OPRMRejectionReply()
         
         'Reply Msg Body Composition:
         objReply.HTMLBody = "<p>Hi " & Name(0) & "," & "<br></p>" & _
-        "<p>Thank you for submitting your request below to the DCV Engagement Desk.  However, as of 9/17/12 the Americas Enterprise," & _
+        "<p>Thank you for submitting your request below to the DCV Engagement Desk.  However, as of 9/17/12 the Americas Enterprise, " & _
         "GET, Public Sector, Architectures, Advisory and GSP teams are using Oracle Projects Resource Management (OPRM) to centrally manage" & _
         " resources, and staffing requests should originate from the segment delivery team for this account.</p>" & _
         "<p>We'll forward this on to the responsible person (ex. Enterprise, Theater DM) and CC you, <u>but you are responsible for following " & _
@@ -60,13 +65,54 @@ Sub OPRMRejectionReply()
         "ctwellma@cisco.com | +1 919 392 6154" & "<br>" & _
         "<p>-----Original Message-----" & _
         objItem.HTMLBody & "</p>"
-        
 
-        objReply.Display
+
+        
+        'Create forwarded email
+        Set objFWD = objItem.Forward
+        'Forward to:
+        objFWD.To = StaffingOwner
+        'CC addresses
+        objFWD.CC = objItem.SenderName & "; as-dcn-pmo-request@cisco.com"
+        'Reply Subject
+        'objFWD.subject = "DCV Resource Request Rejection: " & subject & ", Need to use OPRM"
+        'Reply Importance
+        objFWD.Importance = olImportanceHigh
+        
+        objFWD.HTMLBody = "<p>Hi " & name2(0) & "," & "<br></p>" & _
+        "<p>We've received the staffing request below from " & Name(0) & " " & Name(1) & ", however; as you " & _
+        "know AS is now using OPRM for project resourcing, so we take no further action until a staffing requirement from OPRM reaches us.</p>" & _
+        "<p>Please use the information below as needed for completing the request in the system." & _
+        "<p>Thank you,</p>" & _
+        "<p>CHRIS TWELLMAN <br>" & _
+        "PROJECT SPECIALIST DCV ENGAGEMENT DESK <br>" & _
+        ".:|:.:|:.  Cisco | Data Center & Virtualization Practice | Solutions Delivery Management Team <br>" & _
+        "ctwellma@cisco.com | +1 919 392 6154" & "<br>" & _
+        "<p>-----Original Message-----" & _
+        objItem.HTMLBody & "</p>"
+        
+        With objReply
+            
+            ' Resolve Emails (same as hitting "Check Names" button
+            Call .Recipients.ResolveAll
+            
+            ' Show the message
+            Call .Display
+        End With
+        
+        With objFWD
+            
+            ' Resolve Emails (same as hitting "Check Names" button
+            Call .Recipients.ResolveAll
+            
+            ' Show the message
+            Call .Display
+        End With
             
     End If
     
     Set objReply = Nothing
+    Set objFWD = Nothing
     Set objItem = Nothing
 End Sub
 
