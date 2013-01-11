@@ -1,0 +1,101 @@
+Sub PerformWeeklyUpdate()
+'
+' PerformWeeklyUpdate Macro
+' This macro will request input of a new ependiture report from OP in TSV Format and replace the existing data in the report with
+' the updated information. Then refresh teh pivot tables and other dependent data.
+
+    Dim sFileName As String
+    Dim objTable As PivotTable
+    Dim objField As PivotField
+    Dim RawDataSheet As Worksheet
+    Dim TnESh As Worksheet
+    Dim EffortSh As Worksheet
+    Dim RawData As String
+    Dim BudgetSh As Worksheet
+    Dim SummarySh As Worksheet
+    Dim sortRng As Range
+    Dim Test As String
+    Dim counter As Integer
+    Dim Template As Workbook
+    Dim DataSource As Workbook
+    Dim PIDRef As String
+    Dim newfilename As String
+    
+    
+    
+    Set Template = ActiveWorkbook
+    'Set Source to check PID against
+    PIDRef = ActiveWorkbook.Worksheets("Dashboard").Cells(2, 3).Value
+    'MsgBox (PIDRef)
+    
+    
+    
+    With Application
+        .ScreenUpdating = False
+        .EnableEvents = False
+        .DisplayAlerts = False
+    End With
+
+'Show the open dialog and pass the selected file name to the String variable "sFileName"
+sFileName = Application.GetOpenFilename
+
+If sFileName = "False" Then
+    Exit Sub
+End If
+ 
+        Workbooks.OpenText Filename:=sFileName, Origin:=437, StartRow:=1, DataType:=xlDelimited, TextQualifier:= _
+        xlDoubleQuote, ConsecutiveDelimiter:=False, Tab:=True, Semicolon:=False, _
+        Comma:=False, Space:=False, Other:=False, FieldInfo:=Array(Array(1, 1), _
+        Array(2, 1), Array(3, 1), Array(4, 1), Array(5, 1), Array(6, 1), Array(7, 1), Array(8, 1), _
+        Array(9, 1), Array(10, 1), Array(11, 1), Array(12, 1), Array(13, 1), Array(14, 1), Array(15 _
+        , 1), Array(16, 1), Array(17, 1), Array(18, 1)), TrailingMinusNumbers:=True
+    
+    'Get Imported Sheet name
+    Set DataSource = ActiveWorkbook
+    Set RawDataSheet = ActiveSheet
+    RawDataName = RawDataSheet.Name
+    
+    If RawDataSheet.Cells(2, 2).Value <> PIDRef Then
+        MsgBox ("Error: Cannon Import this data. The PID on the selected expenditure doens't match the existing data in this workbook.")
+        Exit Sub
+    Else
+        'MsgBox ("PID is Valid")
+    End If
+    
+    'Clear existing data
+    Windows(Template.Name).Activate
+    ActiveWorkbook.Worksheets("RawExpenditureData").Activate
+    Cells.Select
+    Selection.ClearContents
+    
+    'Copy new data
+    Windows(DataSource.Name).Activate
+    Cells.Select
+    Selection.Copy
+    Windows(Template.Name).Activate
+    Range("A1").Select
+    ActiveSheet.Paste
+    
+    'Update the Pivots
+    ActiveWorkbook.RefreshAll
+    
+    'Close the raw file
+    Windows(DataSource.Name).Close
+    
+    ActiveWorkbook.Worksheets("Dashboard").Activate
+    MsgBox ("Update Successful")
+    
+    With Application
+        .ScreenUpdating = False
+        .EnableEvents = False
+        .DisplayAlerts = False
+    End With
+    
+    'Prompt to save updated file
+    Datestamp = Format(DateTime.Now(), "YYYY-MM-DD")
+    newfilename = PIDRef & "_Expenditure Report_" & Datestamp
+    
+    ck = Application.Dialogs(xlDialogSaveAs).Show(newfilename, xlWorkbook)
+    
+    
+End Sub
