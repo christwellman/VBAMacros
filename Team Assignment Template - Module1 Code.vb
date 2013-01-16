@@ -403,3 +403,120 @@ Rng.FormatConditions.Delete
         
 End Sub
 
+Sub AddProjectRow()
+
+Application.ScreenUpdating = False
+Application.Calculation = xlCalculationManual
+
+Dim Sh As Worksheet
+Dim bformula As String
+Dim cformula As String
+Dim dformula As String
+Dim bottom As Long
+
+Set Sh = ActiveSheet
+
+'Find the current last row not including total row
+last = Lastrow(Sh) - 2
+
+'Insert row below current last cell
+Cells(last, 2).Offset(1).EntireRow.Insert
+
+'reset last
+last = Lastrow(Sh) - 2
+bottom = Lastrow(Sh)
+
+'Redo numbering
+With Sh.Range(Cells(3, 1), Cells(last, 1))
+    .Value = "=ROW(A1)"
+    .Value = .Value
+End With
+
+'build Dateformula
+
+
+'Add Formulas
+DateFormula = "=IF(AND(I$2>=$F" & last & ",I$2<=$G" & last & "),$D" & last & "," & """""" & ")"
+bformula = "=IF(COUNTA(B3:B" & last & ")<>0," & """Total""" & "," & """""" & ")"
+'original Cformula = =IF(COUNTA(C3:C27)<>0,COUNTA(C3:C27)&" Project(s)","")
+cformula = "=IF(COUNTA(C3:C" & last & ")<>0,COUNTA(C3:C" & last & ")" & "&"" Project(s)""" & "," & """""" & ")"
+'Original Dformula = =IF(COUNTA(D3:D27)<>0,SUM(D3:D27),"")
+dformula = "=IF(COUNTA(D3:D" & last & ")<>0,SUM(D3:D" & last & ")," & """""" & ")"
+Sh.Cells(last, 9).Value = DateFormula
+Sh.Range(Cells(last, 9), Cells(last, "BP")).FillRight
+Sh.Cells(bottom, 2).Value = bformula
+Sh.Cells(bottom, 3).Value = cformula
+Sh.Cells(bottom, 4).Value = dformula
+'MsgBox (dformula)
+
+'rewrite hyperline
+With Sh.Cells(bottom - 1, 2)
+    .Hyperlinks.Add Anchor:=Sh.Cells(bottom - 1, 2), _
+     Address:="", _
+     ScreenTip:="Add another row with formulas to the entry table.", _
+     TextToDisplay:="Add Row"
+     .font.Size = 8
+End With
+
+Application.Calculation = xlCalculationAutomatic
+Application.ScreenUpdating = True
+End Sub
+
+
+Sub DeleteProjectRow()
+
+'Application.ScreenUpdating = False
+Application.Calculation = xlCalculationManual
+
+Dim Sh As Worksheet
+Dim SelectedRange As Range
+Dim DeleteRow As Range
+Set Sh = ActiveSheet
+
+last = Lastrow(Sh)
+'Prompt for Row
+'' need to test if multiple rows will wotk
+Set SelectedRange = Application.InputBox( _
+    Prompt:="Select row(s) you would like to remove.", _
+    Title:="Remove Project Rows", _
+    Type:=8)
+
+
+'select entire row
+If SelectedRange Is Nothing Then
+    'no Range Selected
+Else
+    Set DeleteRow = SelectedRange.EntireRow
+    DeleteRow.EntireRow.Select
+End If
+
+'confirm delete and read back row Number
+confirm = MsgBox( _
+    Prompt:="Are you sure you want to delete the selected row(s)?", _
+    Buttons:=vbYesNo, _
+    Title:="Confirm delete rows")
+
+Application.ScreenUpdating = False
+   
+If confirm = vbNo Then
+ElseIf confirm = vbYes Then
+    DeleteRow.EntireRow.Delete
+End If
+
+'call AddProjectRow
+Call AddProjectRow
+
+'rewrite hyperlink
+With Sh.Cells(1, 2)
+    .Hyperlinks.Add Anchor:=Sh.Cells(1, 2), _
+     Address:="", _
+     ScreenTip:="Remove row(s) from the data entry table.", _
+     TextToDisplay:="Remove Row"
+     .font.Size = 8
+End With
+
+Application.Calculation = xlCalculationAutomatic
+Application.ScreenUpdating = True
+
+End Sub
+
