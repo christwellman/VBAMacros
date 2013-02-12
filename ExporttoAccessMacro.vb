@@ -13,7 +13,7 @@ Sub ExportMailByFolder()
   ' Tutorial for setting up teh connection see: http://www.interfaceware.com/manual/setting_up_odbc_datasource.html
   ' Database and Table must exist before macro can run
   ' DB Name: C:\MyDatabase.mdb
-  '	Table Name: "email"
+  ' Table Name: "email"
   
   
   Dim ns As Outlook.NameSpace
@@ -36,16 +36,30 @@ Sub ExportMailByFolder()
    'in target file.
     If .Class = olMail Then
       adoRS.AddNew
-      adoRS("Subject") = .subject
-      adoRS("Body") = .Body
-      adoRS("FromName") = .SenderName
-      adoRS("ToName") = .To
-      adoRS("FromAddress") = .SenderEmailAddress
-      adoRS("FromType") = .SenderEmailType
-      adoRS("CCName") = .CC
-      adoRS("BCCName") = .BCC
-      adoRS("Importance") = .Importance
-      adoRS("Sensitivity") = .Sensitivity
+            adoRS("User ID") = ParseTextLinePair(.Body, "UserID:")
+            adoRS("Sender Name") = .SenderName
+            adoRS("Submit Time") = ParseTextLinePair(.Body, "Date and Time of Submission:")
+            adoRS("Customer Name") = ParseTextLinePair(.Body, "Customer Name:")
+            adoRS("Customer Site") = ParseTextLinePair(.Body, "Customer Site Location:")
+            adoRS("Customer Primary Contact") = ParseTextLinePair(.Body, "Customer Primary Contact:")
+            adoRS("Project Type") = ParseTextLinePair(.Body, "Project Type:")
+            adoRS("Request Type") = ParseTextLinePair(.Body, "Request Type:")
+            adoRS("Service Description") = ParseTextLinePair(.Body, "Service Description:")
+            adoRS("Services Revenue") = ParseTextLinePair(.Body, "Services Revenue:")
+            adoRS("PID") = ParseTextLinePair(.Body, "PID:")
+            adoRS("SO Number") = ParseTextLinePair(.Body, "Sales Order Nbr:")
+            adoRS("Deal ID") = ParseTextLinePair(.Body, "DID:")
+            adoRS("Start Date") = ParseTextLinePair(.Body, "Project Start Date:")
+            adoRS("End Date") = ParseTextLinePair(.Body, "End Date:")
+            adoRS("Kick off Date") = ParseTextLinePair(.Body, "Project Kick-Off Meeting:")
+            adoRS("On Site PM req") = ParseTextLinePair(.Body, "On site PM requirements(# of Days):")
+            adoRS("Customer Providing PM") = ParseTextLinePair(.Body, "customer providing PM:")
+            adoRS("Specific PM req") = ParseTextLinePair(.Body, "specific PM requirements:")
+            adoRS("Account Manager") = ParseTextLinePair(.Body, "DCN Delivery Manager:")
+            adoRS("Assigned NCE") = ParseTextLinePair(.Body, "Assigned NCE's:")
+            adoRS("Segment") = ParseTextLinePair(.Body, "Theather/Market: Mkt Seg - ")
+            adoRS("Geography") = ParseTextLinePair(.Body, "US Enterprise Geography:")
+            adoRS("Funding") = ParseTextLinePair(.Body, "Funding:")
       adoRS.Update
      End If
     End With
