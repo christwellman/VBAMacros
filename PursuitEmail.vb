@@ -49,6 +49,7 @@ TempFile = Environ$("temp") & "/" & Format(Now, "dd-mm-yy h-mm-ss") & ".htm"
     Set fso = Nothing
     Set TempWB = Nothing
 End Function
+
 Sub SendTableToOutlook()
 'Copy's Specified text from excel sheet to a temporary sheet and then pastes table into outlook message
 Dim OutApp As Object
@@ -107,13 +108,16 @@ Cells(1, "Z").Value = "Last Updated"
             'If email address exists and looks valid then filter Sheet by it
             orgsheet.ListObjects("Table_owssvr_1").Range.AutoFilter Field:=19, Criteria1:=val
             
+            'Filter to just new pursuits
+            orgsheet.ListObjects("Table_owssvr_1").Range.AutoFilter Field:=21, Criteria1:="Not Started", Operator:=xlOr, Criteria2:="="
+            
             'Build email for filtered recipient
             Set OutMail = OutApp.CreateItem(0)
             On Error Resume Next
             With OutMail
                 .To = val 'address mail to validated email
                 .Subject = "Pursuits requiring your input"
-                .HTMLBody = "<p>Hi <br></p>" & _
+                .htmlbody = "<p>Hi <br></p>" & _
                     "<p>The following pursuits are listed in the Pursuit tracker under you name and are either incomplete or haven’t been updated in 14 or more days.<br></p>" & _
                     "<p>Please take the following action:" & _
                     "<ol>1) Review the opportunities below</ol>" & _
@@ -121,16 +125,31 @@ Cells(1, "Z").Value = "Last Updated"
                     "http://ecm-link.cisco.com/ecm/view/objectId/0b0dcae183ece46a/app/ciscodocs" & _
                     ">Pursuit Tracker</a>.</ol>" & _
                     "<ol>3) Load the qualification template into the corresponding folder for each on cisco docs.</ol></p><br>" & _
-                    RangetoHTML(rng) & "<br>" & _
-                    "<p>The qualification templates can also be found on <a href=" & _
+                    "<h3>New Pursuits</h3>" & _
+                    RangetoHTML(rng) & "<br>"
+            End With ' Close top half of mail
+            'Remove Filter to just new pursuits
+            orgsheet.ListObjects("Table_owssvr_1").Range.AutoFilter Field:=21
+            
+            'Add Filter for oppertunities not update in 14 or more Days
+            orgsheet.ListObjects("Table_owssvr_1").Range.AutoFilter Field:=26, Criteria1:="<" & (Now() - 15), Operator:=xlAnd
+           ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+           ' Seccond Table starts below this                                                              '
+           ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+            
+            With OutMail 'open bottom part of mail
+                .htmlbody = .htmlbody & "<h3>Aging Pursuits</h3>" & _
+                    RangetoHTML(rng) & "<br><p>The qualification templates can also be found on <a href=" & _
                     "www.cisco.com" & _
-                    ">Cisco Docs</a>.</ol>" & _
-                    "if neccessary.</p>" ' Update this with folder URL
+                    ">Cisco Docs</a>" & _
+                    " if neccessary.</p>" ' Update this with folder URL
                 'You can also add files like this:
                 '.Attachments.Add ("C:\test.txt")
                 
                 .Display ' can also use .Send
             End With
+            'Remove Filter for oppertunities not update in 14 or more Days
+            orgsheet.ListObjects("Table_owssvr_1").Range.AutoFilter Field:=26
             On Error GoTo 0
             Set OutMail = Nothing
             
@@ -144,3 +163,5 @@ cleanup:
     orgsheet.Cells.EntireColumn.Hidden = False
     Application.ScreenUpdating = True
 End Sub
+
+
