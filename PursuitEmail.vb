@@ -81,10 +81,10 @@ Set rng = orgsheet.UsedRange.SpecialCells(xlCellTypeVisible)
 Cells(1, "Z").Value = "Last Updated"
 
 'Turn off features to optimize
-    'With Application
-    '    .EnableEvents = False
-    '    .ScreenUpdating = False
-    'End With
+    With Application
+        .EnableEvents = False
+        .ScreenUpdating = False
+    End With
     
     ' Catch issue if there is only one valid email
     If Src.Cells.Count = 1 Then
@@ -118,14 +118,11 @@ Cells(1, "Z").Value = "Last Updated"
                 .To = val 'address mail to validated email
                 .Subject = "Pursuits requiring your input"
                 .htmlbody = "<p>Hi <br></p>" & _
-                    "<p>The following pursuits are listed in the Pursuit tracker under you name and are either incomplete or haven’t been updated in 14 or more days.<br></p>" & _
-                    "<p>Please take the following action:" & _
-                    "<ol>1) Review the opportunities below</ol>" & _
-                    "<ol>2) Update the status in column 'L' of the <a href=" & _
-                    "http://ecm-link.cisco.com/ecm/view/objectId/0b0dcae183ece46a/app/ciscodocs" & _
-                    ">Pursuit Tracker</a>.</ol>" & _
-                    "<ol>3) Load the qualification template into the corresponding folder for each on cisco docs.</ol></p><br>" & _
+                    "<p>The following oppertunities from the Sales Pipeline are listed in the Pursuit tracker under you name and are either incomplete or haven’t been updated in 14 or more days.</p>" & _
                     "<h3>New Pursuits</h3>" & _
+                    "<p>Please begin the qualification process and provide a Qualification Status in the <a href=" & _
+                    "http://ecm-link.cisco.com/ecm/view/objectId/0b0dcae183ece46a/app/ciscodocs" & _
+                    ">Pursuit Tracker</a> by updating column L (Qualification Status).</ol>" & _
                     RangetoHTML(rng) & "<br>"
             End With ' Close top half of mail
             'Remove Filter to just new pursuits
@@ -138,13 +135,18 @@ Cells(1, "Z").Value = "Last Updated"
            ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
             
             With OutMail 'open bottom part of mail
-                .htmlbody = .htmlbody & "<h3>Aging Pursuits</h3>" & _
-                    RangetoHTML(rng) & "<br><p>The qualification templates can also be found on <a href=" & _
-                    "www.cisco.com" & _
-                    ">Cisco Docs</a>" & _
-                    " if neccessary.</p>" ' Update this with folder URL
-                'You can also add files like this:
-                '.Attachments.Add ("C:\test.txt")
+                    .htmlbody = .htmlbody & "<h3>Aging Pursuits</h3>" & _
+                    "<p>These oppertunities haven't been updated in teh tracker in over 14 days. Please review" & _
+                    "Qualification Status in column L and update if necessary. If no updates are necessary please simply update the date of review. Statuses are expected to be reviewed/updated weekly.</p>" & _
+                    RangetoHTML(rng) & "<br>" & _
+                    "<p><a href=" & _
+                    "http://ecm-link.cisco.com/ecm/view/objectId/090dcae183ed3974/versionLabel/CURRENT" & _
+                    ">More Information, instructions Qualification and Risk Assesment Templates</a> are available on Cisco Docs.<br><br>" & _
+                    "Please refer to <a href=" & _
+                    "http://iwe.cisco.com/web/view-post/post/-/posts?postId=223600176" & _
+                    ">Checking out and checking in library docs</a> if you need more information on how to properly reserve and update thePursuit Tracker.</p>"
+                    'You can also add files like this:
+                    '.Attachments.Add ("C:\test.txt")
                 
                 .Display ' can also use .Send
             End With
@@ -161,7 +163,8 @@ Cells(1, "Z").Value = "Last Updated"
 cleanup:
     Set OutApp = Nothing
     orgsheet.Cells.EntireColumn.Hidden = False
-    Application.ScreenUpdating = True
+    With Application
+        .EnableEvents = True
+        .ScreenUpdating = True
+    End With
 End Sub
-
-
